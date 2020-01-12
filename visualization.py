@@ -6,15 +6,18 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 
 class ImageWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent=parent)
+    def __init__(self, name, parent=None):
+        QtWidgets.QWidget.__init__(self, parent=None)
+        self.name = name
+        self.parent = parent
         self.initUI()
     
     def initUI(self):
-        self.resize(400,400)
+        self.resize(600,600)
         self.label = QtWidgets.QLabel(self)
-        pixmap = QtGui.QPixmap("AllFiles/02674 S01.jpg")
-        self.label.setPixmap(pixmap.scaled(400,400))
+        pixmap = QtGui.QPixmap("AllFiles/"+self.name)
+        self.label.setPixmap(pixmap.scaled(600,600))
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.show()
 
 class Visualizator(QtWidgets.QDialog):
@@ -42,16 +45,28 @@ class Visualizator(QtWidgets.QDialog):
         self.listWidget.itemClicked.connect(self.printItemText)
         self.layout.addWidget(self.listWidget)
         self.setLayout(self.layout)
+        self.images=[]
 
     def printItemText(self):
         items = self.listWidget.selectedItems()
     
-        commonFiles = set(self.tagsFilesMap[items[0].text()])
+        self.images.clear()
+        commonFilesSet = set(self.tagsFilesMap[items[0].text()])
+        
         for item in items:
             files = self.tagsFilesMap[item.text()]
-            commonFiles = files.intersection(commonFiles)            
+            commonFilesSet = files.intersection(commonFilesSet)            
+        
+        commonFilesList = list(commonFilesSet)
+        for commonFile in commonFilesList:
+            image = ImageWidget(name=commonFile,parent=self)
+            self.images.append(image)
             #if len(commonFiles) == 0:
             #    image = ImageWidget()
+            
+        self.raise_() 
+        self.activateWindow()
+
         #x=[]
         #for i in range(len(items)):
         #    x.append(str(self.listWidget.selectedItems()[i].text()))
@@ -59,12 +74,13 @@ class Visualizator(QtWidgets.QDialog):
         #    self.widget = ImageWidget(self)
             #for file in CommonFiles:
                 
-        print(commonFiles)
+        print(commonFilesList)
 
 if __name__ == "__main__":
     
     app = QtWidgets.QApplication(sys.argv)
     form = Visualizator()
     form.show()
-    image = ImageWidget()
+    #image = ImageWidget()
     app.exec_()
+    print('\n'.join(repr(w) for w in app.allWidgets()))
